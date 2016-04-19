@@ -38,10 +38,13 @@ class JSONTranslator(object):
         resp.body = json.dumps(req.context['result'])
 
 
-api = application = falcon.API(middleware=[
+def add_routes(api):
+    api.add_route('/users/{uid}/create_token', CreateToken())
+    api.add_route('/users/{uid}/password', PutPassword())
+
+
+api = falcon.API(middleware=[
     RequireJSON(),
     JSONTranslator(),
 ])
-
-api.add_route('/users/{uid}/create_token', CreateToken())
-api.add_route('/users/{uid}/password', PutPassword())
+add_routes(api)

@@ -1,7 +1,4 @@
 import falcon
-import sys
-import uuid
-import json
 from model.user import User
 
 class PutPassword(object):
