@@ -1,0 +1,55 @@
+----------------------
+
+Endpoint name: login
+Request:
+ URI: /users
+ Method: POST
+ Body:
+  {
+   "email": "foo",
+   "password": "bar"
+  }
+Response: 
+ -success:
+   Status code: 200
+   Body:
+     {
+       "user_id": "id",
+       "authentication_token": "foo"
+     }
+ -failure:
+   Status code: 401
+   Body:
+     {"error": "invalid_password"}
+
+----------------------
+
+Endpoint name: validate_token
+Request:
+ URI: /users/{user_id}
+ Method: GET
+ Auth: autohentication_token
+Response:
+ -success: 
+  Status code: 200
+   Body:
+    {}
+-failure:
+   Status code:
+   Body: 401
+     {
+       "error": "Not authorized"
+     }
+
+
+POST /users/{uid}/validate_password (password)
+retornara 200 success = true
+o 200 success = false
+Hacer un alt
+controllers.validate_password
+reeutilizar el post de token
+
+
+POST /users
+401
+invalid password
