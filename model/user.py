@@ -25,8 +25,14 @@ class User:
     def set_token(self, token):
         self.token = token
 
+    def get_uid(self):
+        return self.uid
+
     def get_token(self):
         return self.token
+
+    def get_password(self):
+        return self.password
 
     def write_token(self):
         user = as_user_token.new_item(
@@ -43,6 +49,12 @@ class User:
         except boto.dynamodb.exceptions.DynamoDBKeyNotFoundError:
             self.token = None
 
+    def read_password(self):
+        try:
+            self.password = as_user_password.get_item(self.uid)['password']
+        except boto.dynamodb.exceptions.DynamoDBKeyNotFoundError:
+            self.token = None
+
     def write_user_password(self):
         user = as_user_password.new_item(
             attrs={
@@ -51,7 +63,3 @@ class User:
             }
         )
         user.put()
-
-    def get_password(self, uid):
-        user = as_user_password.get_item(uid)
-        return user['password']
