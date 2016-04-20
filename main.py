@@ -42,9 +42,12 @@ def add_routes(api):
     api.add_route('/users/{uid}/create_token', CreateToken())
     api.add_route('/users/{uid}/password', PutPassword())
 
+def create_api():
+    api = falcon.API(middleware=[
+        RequireJSON(),
+        JSONTranslator(),
+    ])
+    add_routes(api)
+    return api
 
-api = falcon.API(middleware=[
-    RequireJSON(),
-    JSONTranslator(),
-])
-add_routes(api)
+create_api()

@@ -2,14 +2,15 @@ import falcon
 import falcon.testing as testing
 import uuid
 import main
+import json
 from model.user import User
 from types import UnicodeType
 
 class TestCreateToken(testing.TestBase):
     def before(self):
-        main.add_routes(self.api)
+        self.api = main.create_api()
 
-    def test_grace(self):
+    def test_create_token(self):
         uid = str(uuid.uuid4())
         headers = [('Accept', 'application/json'),
                    ('Content-Type', 'application/json'),]
@@ -19,8 +20,11 @@ class TestCreateToken(testing.TestBase):
                                      method="POST",
                                      body='{}')
         self.assertEqual(self.srmock.status, falcon.HTTP_200)
+        body = json.loads(body)
+        self.assertEqual(1, len(body))
+        self.assertEqual(['token'], body.keys())
         user = User(uid=uid)
         user.read_token()
         self.assertEqual(UnicodeType, type(user.get_token()))
         self.assertTrue(len(user.get_token()) > 10)
-        self.assertNotEqual(None, user.get_token())
+        self.assertTrue(user.get_token() == body['token'])
