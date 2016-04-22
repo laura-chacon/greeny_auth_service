@@ -1,20 +1,29 @@
 import falcon
 import json
+import common
 from model.user import User
+import model.user
 
-class validate_password(object):
+class ValidatePassword(object):
     def on_post(self, req, resp, uid):
-        real_password = get_password(uid)
         password = req.context['body'].get('password')
-        if password == real_password:
-            r = requests.post(
-                "http://127.0.0.1:8002/users/" + str(uid) + "/create_token",
-                data=json.dumps({}),
-                headers={"Content-Type": "application/json",
-                         "Accept": "application/json"})
-            token = json.loads(r.content)['token']
-            req.context['result'] = {'token': token}
-            resp.status = falcon.HTTP_200
+        user = model.user.try_read(uid)
+        if user == None:
+            req.context['result'] = {
+                'errors': [
+                    {'code': "user_not_found"}
+                ]}
+            resp.status = falcon.HTTP_404
         else:
-            req.context['result'] = {'error': "invalid password"}
-            resp.status = falcon.HTTP_401
+            if password == user.get_password():
+                token = common.create_token()
+                user.set_token(token)
+                user.write()
+                req.context['result'] = {'token': token}
+                resp.status = falcon.HTTP_200
+            else:
+                req.context['result'] = {
+                    'errors': [
+                        {'code': "password_invalid"}
+                    ]}
+                resp.status = falcon.HTTP_401

@@ -7,23 +7,13 @@ conn = boto.dynamodb.connect_to_region(
         'eu-west-1',
         aws_access_key_id = os.environ['ACCESS_KEY_ID'],
         aws_secret_access_key = os.environ['SECRET_ACCESS_KEY'])
-as_user_token = conn.get_table('as_user_token')
-as_user_password = conn.get_table('as_user_password')
+as_users = conn.get_table('as_users')
 
 class User:
     def __init__(self, **kwargs):
         self.uid = kwargs.get("uid", None)
         self.password = kwargs.get("password", None)
         self.token = kwargs.get("token", None)
-
-    def set_uid(self, new_uid):
-        self.uid = new_uid
-
-    def set_password(self, new_password):
-        self.password = new_password
-
-    def set_token(self, token):
-        self.token = token
 
     def get_uid(self):
         return self.uid
@@ -34,32 +24,28 @@ class User:
     def get_password(self):
         return self.password
 
-    def write_token(self):
-        user = as_user_token.new_item(
-            attrs={
-                'uid': self.uid,
-                'token': self.token
-            }
-        )
+    def set_password(self, password):
+        self.password = password
+
+    def set_token(self, token):
+        self.token = token
+
+    def write(self):
+        m = {'uid': self.uid}
+        if self.password != None:
+            m['password'] = self.password
+        if self.token != None:
+            m['token'] = self.token
+        user = as_users.new_item(attrs=m)
         user.put()
 
-    def read_token(self):
-        try:
-            self.token = as_user_token.get_item(self.uid)['token']
-        except boto.dynamodb.exceptions.DynamoDBKeyNotFoundError:
-            self.token = None
+def try_read(uid):
+    try:
+        m = as_users.get_item(uid)
+        return User(**m)
+    except boto.dynamodb.exceptions.DynamoDBKeyNotFoundError:
+        return None
 
-    def read_password(self):
-        try:
-            self.password = as_user_password.get_item(self.uid)['password']
-        except boto.dynamodb.exceptions.DynamoDBKeyNotFoundError:
-            self.token = None
-
-    def write_user_password(self):
-        user = as_user_password.new_item(
-            attrs={
-                'uid': self.uid,
-                'password': self.password
-            }
-        )
-        user.put()
+def read(uid):
+    m = as_users.get_item(uid)
+    return User(**m)
