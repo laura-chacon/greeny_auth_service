@@ -12,38 +12,38 @@ class TestCreateToken(testing.TestBase):
         self.api = main.create_api()
 
     def test_create_token_success(self):
-        uid = str(uuid.uuid4())
+        uid = "111"
         body = self.req(uid)
         self.assertEqual(self.srmock.status, falcon.HTTP_200)
         body = json.loads(body)
         self.assertEqual(1, len(body))
-        self.assertEqual(['token'], body.keys())
+        self.assertEqual(['auth_token'], body.keys())
         user = model.user.read(uid)
         self.assertEqual(UnicodeType, type(user.get_token()))
         self.assertTrue(len(user.get_token()) > 10)
-        self.assertTrue(user.get_token() == body['token'])
+        self.assertTrue(user.get_token() == body['auth_token'])
         self.assertEqual(None, user.get_password())
 
     def test_user_already_exists(self):
-        uid = str(uuid.uuid4())
+        uid = "222"
         old_token = str(uuid.uuid4())
         password = "asd2"
-        user = User(uid=uid, token=old_token, password=password)
+        user = User(uid=uid, password=password, auth_token=old_token)
         user.write()
         body = self.req(uid)
         body = json.loads(body)
         user = model.user.read(uid)
         self.assertEqual(password, user.get_password())
         self.assertNotEqual(old_token, user.get_token())
-        self.assertTrue(user.get_token() == body['token'])
+        self.assertTrue(user.get_token() == body['auth_token'])
 
     def test_body_not_json(self):
-        uid = str(uuid.uuid4())
+        uid = "333"
         body = self.req(uid, body='aaa')
         self.assertEqual(self.srmock.status, falcon.HTTP_753)
 
     def test_method_not_post(self):
-        uid = str(uuid.uuid4())
+        uid = "444"
         body = self.req(uid, method="GET")
         self.assertEqual(self.srmock.status, falcon.HTTP_405)
 

@@ -8,8 +8,8 @@ class CreateToken(object):
         user = model.user.try_read(uid)
         if user == None:
             user = User(uid=uid)
-        token = common.create_token()
-        user.set_token(token)
+        auth_token = common.create_token()
+        user.set_token(auth_token)
         user.write()
-        req.context['result'] = {'token': token}
+        req.context['result'] = {'auth_token': auth_token}
         resp.status = falcon.HTTP_200

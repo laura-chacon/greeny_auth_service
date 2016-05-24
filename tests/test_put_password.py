@@ -27,13 +27,11 @@ class TestPutPassword(testing.TestBase):
         uid = str(uuid.uuid4())
         old_password = "foo1"
         new_password = "foo2"
-        token = "abc"
-        user = User(uid=uid, password=old_password, token=token)
+        user = User(uid=uid, password=old_password)
         user.write()
         body = self.req(uid, body={'password': new_password})
         user = model.user.read(uid)
         self.assertEqual(new_password, user.get_password())
-        self.assertEqual(token, user.get_token())
 
     def req(self, uid, body):
         headers = [('Accept', 'application/json'),

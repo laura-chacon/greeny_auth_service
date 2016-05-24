@@ -1,25 +1,28 @@
 import json
-import boto
+import boto3
 import boto.dynamodb
 import os
 
-conn = boto.dynamodb.connect_to_region(
-        'eu-west-1',
-        aws_access_key_id = os.environ['ACCESS_KEY_ID'],
-        aws_secret_access_key = os.environ['SECRET_ACCESS_KEY'])
-as_users = conn.get_table('as_users')
+client = boto3.resource(
+    'dynamodb',
+    region_name='eu-west-1',
+    aws_access_key_id=os.environ['ACCESS_KEY_ID'],
+    aws_secret_access_key=os.environ['SECRET_ACCESS_KEY']
+)
+
+as_users = client.Table('as_users')
 
 class User:
     def __init__(self, **kwargs):
         self.uid = kwargs.get("uid", None)
         self.password = kwargs.get("password", None)
-        self.token = kwargs.get("token", None)
+        self.auth_token = kwargs.get("auth_token", None)
 
     def get_uid(self):
         return self.uid
 
     def get_token(self):
-        return self.token
+        return self.auth_token
 
     def get_password(self):
         return self.password
@@ -27,25 +30,51 @@ class User:
     def set_password(self, password):
         self.password = password
 
-    def set_token(self, token):
-        self.token = token
+    def set_token(self, auth_token):
+        self.auth_token = auth_token
 
     def write(self):
-        m = {'uid': self.uid}
         if self.password != None:
-            m['password'] = self.password
-        if self.token != None:
-            m['token'] = self.token
-        user = as_users.new_item(attrs=m)
-        user.put()
+            as_users.put_item(
+                Item={
+                    'uid': self.uid,
+                    'password': self.password
+                }
+            )
+        if self.auth_token != None:
+            as_users.put_item(
+                Item={
+                    'uid': self.uid,
+                    'auth_token': self.auth_token
+                }
+            )
+        if self.password != None and self.auth_token != None:
+            as_users.put_item(
+                Item={
+                    'uid': self.uid,
+                    'password': self.password,
+                    'auth_token': self.auth_token
+                }
+            )
+
 
 def try_read(uid):
-    try:
-        m = as_users.get_item(uid)
-        return User(**m)
-    except boto.dynamodb.exceptions.DynamoDBKeyNotFoundError:
+    response = as_users.get_item(
+        Key={
+            'uid': uid
+        }
+    )
+    if 'Item' in response:
+        item = response['Item']
+        return User(**item)
+    else:
         return None
 
 def read(uid):
-    m = as_users.get_item(uid)
-    return User(**m)
+    response = as_users.get_item(
+        Key={
+            'uid': uid
+        }
+    )
+    item = response['Item']
+    return User(**item)
