@@ -39,7 +39,6 @@ class JSONTranslator(object):
             return
         resp.body = json.dumps(req.context['result'])
 
-
 def add_routes(api):
     api.add_route('/users/{uid}/create_token', CreateToken())
     api.add_route('/users/{uid}/password', PutPassword())
@@ -54,4 +53,4 @@ def create_api():
     add_routes(api)
     return api
 
-create_api()
+api = create_api()
